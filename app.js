@@ -5,11 +5,14 @@ const sliders = document.querySelectorAll('input[type="range"]');
 const currentHexes = document.querySelectorAll(".color h2");
 const popup = document.querySelector(".copy-container");
 const adjustButton = document.querySelectorAll(".adjust");
+const lockButton = document.querySelectorAll(".lock");
 const closeAdjustments = document.querySelectorAll(".close-adjustment");
 const sliderContainers = document.querySelectorAll(".sliders");
 let initialColors;
 
 //event listeners
+generateBtn.addEventListener("click", randomColor);
+
 sliders.forEach((slider) => {
   slider.addEventListener("input", hslControls);
 });
@@ -38,6 +41,11 @@ closeAdjustments.forEach((button, index) => {
     closeAdjustmentPanel(index);
   });
 });
+lockButton.forEach((button, index) => {
+  button.addEventListener(`click`, () => {
+    addLockClass(index);
+  });
+});
 
 //functions
 //color generator
@@ -47,15 +55,26 @@ function generations() {
   return hexColor;
 }
 
+function addLockClass(index) {
+  colorDivs[index].classList.toggle(`locked`);
+  lockButton[index].children[0].classList.toggle(`fa-lock-open`);
+  lockButton[index].children[0].classList.toggle(`fa-lock`);
+}
+
 function randomColor() {
-  //initial colors
+  //initial colors initializing and emptying
   initialColors = [];
   colorDivs.forEach((div, index) => {
     const hexText = div.children[0];
     const randomColor = generations();
 
     //add it to the array
-    initialColors.push(chroma(randomColor).hex());
+    if (div.classList.contains("locked")) {
+      initialColors.push(hexText.innerText);
+      return;
+    } else {
+      initialColors.push(chroma(randomColor).hex());
+    }
 
     //add the color to the bg
     div.style.backgroundColor = randomColor;
@@ -75,6 +94,11 @@ function randomColor() {
   });
   //reset inputs
   resetInputs();
+  //check for contrast on buttons
+  adjustButton.forEach((button, index) => {
+    checkHexContrast(initialColors[index], button);
+    checkHexContrast(initialColors[index], lockButton[index]);
+  });
 }
 
 function checkHexContrast(color, text) {
